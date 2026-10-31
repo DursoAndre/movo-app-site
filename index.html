@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Movo — Copyright (c) 2026 Andre. Todos os direitos reservados. Ver LICENSE. -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Movo</title>
+<meta name="theme-color" content="#14161A" />
+<meta name="description" content="Movo — todos os seus treinos e atividades em um só lugar." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Movo" />
+
+<link rel="preload" href="vendor/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/oswald-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+
+<style>
+  /* overscroll-behavior-y:contain evita que um "puxão" de scroll dentro do
+     app (ex: na tela Hoje, quando não tem conteúdo suficiente pra rolar)
+     vaze pro documento inteiro e arraste o cabeçalho pra fora da tela — o
+     famoso "bounce" do navegador no celular. min-height:100dvh (em vez de
+     só 100vh) evita que o #root fique mais alto que a altura visível de
+     verdade no celular (100vh é a altura "cheia", contando a área que a
+     barra do navegador pode ocupar; 100dvh é a altura realmente visível
+     agora) — sem isso, o #root podia sobrar alguns pixels maior que a tela
+     e o documento virava rolável à toa, mesmo sem ter conteúdo extra. */
+  html, body { margin:0; padding:0; background:#14161A; height:100%; overscroll-behavior-y:contain; }
+  #root { min-height:100vh; min-height:100dvh; }
+  #boot-status { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; min-height:100vh; font-family:'Roboto Mono',monospace; color:#9AA0A6; padding:24px 18px; font-size:13px; box-sizing:border-box; }
+  #boot-error { display:none; font-family:monospace; color:#FF5A36; background:#1D2024; border:1px solid #FF5A36; padding:16px; margin:16px; border-radius:6px; white-space:pre-wrap; font-size:13px; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="boot-status">
+    <svg width="40" height="40" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="36" y="126" width="44" height="74" rx="14" fill="#C6F135"/>
+      <rect x="98" y="86" width="44" height="114" rx="14" fill="#C6F135"/>
+      <rect x="160" y="46" width="44" height="154" rx="14" fill="#C6F135"/>
+      <circle cx="182" cy="25" r="13" fill="#C6F135"/>
+    </svg>
+    <div id="boot-label">Carregando…</div>
+  </div>
+</div>
+<div id="boot-error"></div>
+
+<script>
+  // Definido ANTES de tentar carregar qualquer script externo, e com captura
+  // de fase (capture:true), pra pegar também falhas de carregamento de <script>
+  // (que não borbulham normalmente) — não só erros de execução do código.
+  // Inglês (v247): mesma regra do app.js (escolha salva; senão quem já usava fica em português; senão o idioma do celular).
+  var BOOT_EN = (function () {
+    try {
+      // Link da landing em inglês (movoapp.com.br/en/) chega com ?lang=en: vira a escolha do aparelho.
+      var q = /[?&]lang=(en|pt)\b/.exec(location.search);
+      if (q) localStorage.setItem("treino-app:lang", q[1]);
+      var s = localStorage.getItem("treino-app:lang");
+      if (s) return s === "en";
+      for (var i = 0; i < localStorage.length; i++) if (/^(treino-app:|sb-)/.test(localStorage.key(i) || "")) return false;
+    } catch (e) {}
+    return !/^pt\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || "pt");
+  })();
+  if (BOOT_EN) { var bl = document.getElementById("boot-label"); if (bl) bl.textContent = "Loading…"; document.documentElement.lang = "en"; }
+  function showBootError(msg) {
+    var el = document.getElementById("boot-error");
+    var status = document.getElementById("boot-status");
+    if (status) status.style.display = "none";
+    if (el) {
+      el.style.display = "block";
+      el.textContent = BOOT_EN ? "Error loading the app:\n\n" + msg + "\n\nTake a screenshot of this whole message and send it to us." : "Erro ao carregar o app:\n\n" + msg + "\n\nTira um print desta mensagem inteira e manda pro Claude.";
+    }
+  }
+  // Depois que o app abriu (window.__movoMontado), erros vão para a barra "Reportar" do próprio app.
+  window.addEventListener("error", function (e) {
+    if (window.__movoMontado) return;
+    var msg = (e.error && e.error.stack) || e.message || (e.target && e.target.src ? "Falha ao carregar: " + e.target.src : String(e));
+    showBootError(msg);
+  }, true);
+  window.addEventListener("unhandledrejection", function (e) {
+    if (window.__movoMontado) return;
+    showBootError(String((e.reason && e.reason.stack) || e.reason));
+  });
+</script>
+
+<script src="vendor/react.js" onerror="showBootError('Falha ao carregar o React.')"></script>
+<script src="vendor/react-dom.js" onerror="showBootError('Falha ao carregar o ReactDOM.')"></script>
+<script src="vendor/lottie.js"></script>
+<script src="vendor/supabase.js" onerror="showBootError('Falha ao carregar o Supabase.')"></script>
+
+<script>
+  setTimeout(function () {
+    if (!window.React || !window.ReactDOM) {
+      showBootError(
+        "As bibliotecas externas não terminaram de carregar a tempo (React: " + (!!window.React) +
+        ", ReactDOM: " + (!!window.ReactDOM) + "" + ", Supabase: " + (!!(window.supabase)) +
+        ").\n\nIsso costuma acontecer quando a internet está lenta/instável. Tenta recarregar a página (puxar pra baixo ou Ctrl+Shift+R)."
+      );
+    }
+  }, 6000);
+</script>
+
+<script src="app.96d34f4864.js"></script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
