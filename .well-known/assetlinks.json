@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.use_as_origin"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.movoapp.app",
+      "sha256_cert_fingerprints": [
+        "F3:E8:33:A7:83:8A:40:6C:47:D7:96:19:84:5C:55:9D:42:0B:70:70:EF:2A:95:D7:80:B9:6A:CC:22:6B:0A:F4",
+        "28:E7:85:C6:A7:7D:F4:AA:A0:E5:5F:F4:31:E8:EF:F1:55:8C:AC:58:90:D5:D6:32:93:D9:1F:CD:44:95:E5:F0"
+      ]
+    }
+  }
+]
