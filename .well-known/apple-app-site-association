@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["NJ86VHJQ47.br.com.movoapp.app"],
+        "components": [{ "/": "/*" }]
+      }
+    ]
+  }
+}
